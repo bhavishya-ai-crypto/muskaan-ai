@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Muskaan.ai — Your plot, planned.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400..600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0F2A47; --navy-deep:#091C30; --line:#7FB3E8; --line-dim:rgba(127,179,232,.28);
+    --paper:#F6F2E9; --paper-line:#E4DCC8; --sandstone:#C9A66B; --terracotta:#B5533C; --terracotta-deep:#8F3F2E;
+    --ink:#201C16; --ink-soft:#5B5347; --white:#fff;
+    --font-display:'Fraunces',serif; --font-body:'IBM Plex Sans',sans-serif; --font-mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{background:var(--paper); color:var(--ink); font-family:var(--font-body); line-height:1.5; overflow-x:hidden;}
+  a{color:inherit; text-decoration:none;}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 28px;}
+  @media(prefers-reduced-motion: reduce){ *{animation-duration:0.01ms !important; animation-delay:0s !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important;} }
+
+  /* ---------- NAV ---------- */
+  .nav{position:fixed; top:0; left:0; right:0; z-index:100; padding:18px 0; transition:background .3s ease, padding .3s ease, border-color .3s ease; border-bottom:1px solid transparent;}
+  .nav.scrolled{background:rgba(9,28,48,.92); backdrop-filter:blur(8px); padding:12px 0; border-color:var(--line-dim);}
+  .nav .wrap{display:flex; align-items:center; justify-content:space-between;}
+  .logo{font-family:var(--font-display); font-style:italic; font-size:24px; font-weight:600; color:var(--white);}
+  .logo span{color:var(--sandstone); font-style:normal;}
+  .nav-links{display:flex; align-items:center; gap:30px; font-family:var(--font-mono); font-size:12.5px; letter-spacing:.5px;}
+  .nav-links a:not(.cta){color:#CBD9E8; opacity:.85;}
+  .nav-links a:not(.cta):hover{opacity:1;}
+  .cta{background:var(--terracotta); color:var(--white); padding:11px 20px; border-radius:2px; font-weight:600; transition:background .2s ease, transform .2s ease;}
+  .cta:hover{background:var(--terracotta-deep); transform:translateY(-1px);}
+
+  /* ---------- HERO ---------- */
+  .hero{background:var(--navy); color:var(--white); position:relative; min-height:100vh; display:flex; align-items:center; padding-top:90px; overflow:hidden;}
+  .grid-bg{position:absolute; inset:0; background-image:
+      linear-gradient(var(--line-dim) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line-dim) 1px, transparent 1px);
+    background-size:34px 34px; opacity:.4; z-index:0;
+    animation:gridDrift 40s linear infinite;}
+  @keyframes gridDrift{ from{background-position:0 0;} to{background-position:340px 340px;} }
+  .hero .wrap{display:grid; grid-template-columns:1.05fr 1fr; gap:40px; align-items:center; position:relative; z-index:2;}
+  .eyebrow{font-family:var(--font-mono); font-size:12px; letter-spacing:3px; text-transform:uppercase; color:var(--sandstone); margin-bottom:16px; opacity:0; animation:fadeUp .7s ease forwards .1s;}
+  h1{font-family:var(--font-display); font-weight:500; font-size:clamp(36px,5vw,58px); line-height:1.08; margin-bottom:20px; opacity:0; animation:fadeUp .7s ease forwards .25s;}
+  h1 em{font-style:italic; color:var(--sandstone); position:relative;}
+  .hero p.lead{font-size:17px; color:#CBD9E8; max-width:460px; margin-bottom:34px; opacity:0; animation:fadeUp .7s ease forwards .4s;}
+  .hero-ctas{display:flex; gap:14px; flex-wrap:wrap; opacity:0; animation:fadeUp .7s ease forwards .55s;}
+  .btn-ghost-lg{border:1px solid var(--line-dim); color:var(--white); padding:15px 24px; border-radius:2px; font-family:var(--font-mono); font-size:13px; letter-spacing:.5px; transition:border-color .2s ease, color .2s ease;}
+  .btn-ghost-lg:hover{border-color:var(--sandstone); color:var(--sandstone);}
+  .cta-lg{background:var(--terracotta); color:var(--white); padding:15px 26px; border-radius:2px; font-family:var(--font-mono); font-size:13px; letter-spacing:.5px; font-weight:600; transition:background .2s ease, transform .2s ease;}
+  .cta-lg:hover{background:var(--terracotta-deep); transform:translateY(-2px);}
+  .stat-row{display:flex; gap:32px; margin-top:44px; opacity:0; animation:fadeUp .7s ease forwards .7s;}
+  .stat-row div strong{display:block; font-family:var(--font-display); font-size:26px; color:var(--sandstone);}
+  .stat-row div span{font-family:var(--font-mono); font-size:11px; color:#8FA9C2; letter-spacing:.5px; text-transform:uppercase;}
+  @keyframes fadeUp{ from{opacity:0; transform:translateY(16px);} to{opacity:1; transform:translateY(0);} }
+
+  /* ---------- HERO ANIMATED BLUEPRINT ---------- */
+  .hero-visual{display:flex; justify-content:center; align-items:center; position:relative;}
+  .hero-visual svg{width:100%; max-width:460px; height:auto;}
+  .plot-outline{fill:none; stroke:var(--sandstone); stroke-width:2; stroke-dasharray:1300; stroke-dashoffset:1300; animation:drawLine 1.6s ease forwards .3s;}
+  @keyframes drawLine{ to{stroke-dashoffset:0;} }
+  .room-rect{opacity:0; transform-origin:center; animation:popIn .5s ease forwards;}
+  @keyframes popIn{ from{opacity:0; transform:scale(.85);} to{opacity:1; transform:scale(1);} }
+  .room-label{opacity:0; animation:fadeIn .4s ease forwards;}
+  @keyframes fadeIn{ to{opacity:1;} }
+  .dim-label{font-family:var(--font-mono); font-size:12px; fill:var(--line); opacity:0; animation:fadeIn .5s ease forwards 1.7s;}
+
+  /* ---------- SECTIONS ---------- */
+  section{padding:110px 0;}
+  .reveal{opacity:0; transform:translateY(28px); transition:opacity .7s ease, transform .7s ease;}
+  .reveal.in{opacity:1; transform:translateY(0);}
+  .section-head{max-width:600px; margin-bottom:56px;}
+  .section-head .eyebrow{color:var(--terracotta); opacity:1; animation:none;}
+  .section-head h2{font-family:var(--font-display); font-weight:500; font-size:clamp(28px,3.4vw,40px); color:var(--ink); line-height:1.15;}
+  .section-head p{color:var(--ink-soft); margin-top:14px; font-size:16px;}
+
+  /* HOW IT WORKS */
+  .how{background:var(--paper);}
+  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:0; position:relative;}
+  .steps::before{content:''; position:absolute; top:34px; left:8%; right:8%; height:1px; background:repeating-linear-gradient(90deg, var(--paper-line) 0 8px, transparent 8px 16px); z-index:0;}
+  .step{position:relative; z-index:1; padding-right:24px;}
+  .step-num{width:68px; height:68px; border-radius:50%; background:var(--white); border:1.5px solid var(--terracotta); color:var(--terracotta); font-family:var(--font-display); font-size:26px; display:flex; align-items:center; justify-content:center; margin-bottom:22px; transition:transform .3s ease, background .3s ease, color .3s ease;}
+  .step:hover .step-num{background:var(--terracotta); color:var(--white); transform:scale(1.08) rotate(-4deg);}
+  .step h3{font-family:var(--font-display); font-size:21px; margin-bottom:10px; font-weight:500;}
+  .step p{color:var(--ink-soft); font-size:14.5px;}
+
+  /* FEATURES */
+  .features{background:var(--navy-deep); color:var(--white);}
+  .features .section-head h2, .features .section-head p{color:var(--white);}
+  .features .section-head p{color:#B9C7D6;}
+  .features .section-head .eyebrow{color:var(--sandstone);}
+  .feature-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:2px; background:var(--line-dim); border:1px solid var(--line-dim);}
+  .feature-card{background:var(--navy-deep); padding:34px 28px; transition:background .3s ease;}
+  .feature-card:hover{background:rgba(255,255,255,.04);}
+  .feature-icon{width:38px; height:38px; margin-bottom:20px;}
+  .feature-icon svg{width:100%; height:100%; stroke:var(--sandstone); fill:none; stroke-width:1.6;}
+  .feature-card h3{font-family:var(--font-display); font-size:19px; margin-bottom:10px; font-weight:500;}
+  .feature-card p{color:#B9C7D6; font-size:14px;}
+
+  /* SHOWCASE (mock cards) */
+  .showcase{background:var(--paper);}
+  .showcase-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:18px;}
+  .mock-card{background:var(--white); border:1px solid var(--paper-line); border-radius:4px; overflow:hidden; transition:transform .35s ease, box-shadow .35s ease;}
+  .mock-card:hover{transform:translateY(-6px); box-shadow:0 16px 32px rgba(30,25,15,.14);}
+  .mock-card svg{display:block; width:100%; height:auto;}
+  .mock-card .mock-meta{padding:12px 14px; font-family:var(--font-mono); font-size:11px; color:var(--ink-soft);}
+  @media(max-width:900px){ .showcase-grid{grid-template-columns:repeat(2,1fr);} }
+
+  /* FAQ */
+  .faq{background:var(--paper);}
+  .faq-list{max-width:720px;}
+  .faq-item{border-bottom:1px solid var(--paper-line);}
+  .faq-q{width:100%; text-align:left; background:none; border:none; padding:22px 0; font-family:var(--font-display); font-size:18px; color:var(--ink); cursor:pointer; display:flex; justify-content:space-between; align-items:center; gap:16px;}
+  .faq-q .plus{font-family:var(--font-mono); font-size:20px; color:var(--terracotta); transition:transform .3s ease; flex-shrink:0;}
+  .faq-item.open .plus{transform:rotate(45deg);}
+  .faq-a{max-height:0; overflow:hidden; transition:max-height .35s ease;}
+  .faq-a p{padding-bottom:20px; color:var(--ink-soft); font-size:14.5px; max-width:600px;}
+
+  /* FINAL CTA */
+  .final-cta{background:var(--navy); color:var(--white); text-align:center; position:relative; overflow:hidden;}
+  .final-cta .wrap{position:relative; z-index:2;}
+  .final-cta h2{font-family:var(--font-display); font-weight:500; font-size:clamp(30px,4.4vw,48px); margin-bottom:20px;}
+  .final-cta h2 em{color:var(--sandstone); font-style:italic;}
+  .final-cta p{color:#CBD9E8; margin-bottom:34px; font-size:16px;}
+
+  footer{background:var(--navy-deep); color:#8FA9C2; padding:36px 0; font-family:var(--font-mono); font-size:11.5px; text-align:center; border-top:1px solid var(--line-dim);}
+
+  @media(max-width:860px){
+    .hero .wrap{grid-template-columns:1fr;}
+    .hero-visual{order:-1; margin-bottom:12px;}
+    .nav-links a:not(.cta){display:none;}
+    .steps{grid-template-columns:1fr; gap:36px;}
+    .steps::before{display:none;}
+    .feature-grid{grid-template-columns:1fr;}
+    .showcase-grid{grid-template-columns:1fr 1fr;}
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav" id="siteNav">
+  <div class="wrap">
+    <div class="logo">Muskaan<span>.ai</span></div>
+    <div class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#features">Features</a>
+      <a href="#faq">FAQ</a>
+      <a class="cta" href="muskaan-ai.html">Start planning</a>
+    </div>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="grid-bg"></div>
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">Residential architecture, automated</div>
+      <h1>Your plot, <em>planned</em> in seconds.</h1>
+      <p class="lead">Enter your plot dimensions. Muskaan.ai lays out 10 real floor-plan options — bedrooms, washrooms, kitchen, garage, hall — each with a blueprint and a 3D view.</p>
+      <div class="hero-ctas">
+        <a class="cta-lg" href="muskaan-ai.html">Plan your plot — free</a>
+        <a class="btn-ghost-lg" href="#how">See how it works</a>
+      </div>
+      <div class="stat-row">
+        <div><strong>10</strong><span>Layouts per plot</span></div>
+        <div><strong>2D + 3D</strong><span>Every layout</span></div>
+        <div><strong>0₹</strong><span>To generate</span></div>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <svg viewBox="0 0 400 400" id="heroSvg">
+        <rect class="plot-outline" x="30" y="30" width="340" height="340"/>
+        <!-- rooms, staggered pop-in -->
+        <g id="heroRooms"></g>
+        <line x1="30" y1="14" x2="370" y2="14" stroke="#7FB3E8" stroke-width="1" opacity="0" style="animation:fadeIn .4s ease forwards 1.6s"/>
+        <text class="dim-label" x="200" y="10" text-anchor="middle">40 ft</text>
+        <text class="dim-label" x="12" y="205" text-anchor="middle" transform="rotate(-90 12 205)">30 ft</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section class="how" id="how">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">Three steps</div>
+      <h2>From a number on a plot paper to a plan you can build from.</h2>
+    </div>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="step-num">1</div>
+        <h3>Enter your plot size</h3>
+        <p>Length, width, and which way the entrance faces. That's all Muskaan.ai needs to start.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">2</div>
+        <h3>Get 10 real layouts</h3>
+        <p>A room-allocation algorithm — not stock photos — proportions your hall, bedrooms, kitchen, and washrooms to your actual plot.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">3</div>
+        <h3>View blueprint &amp; 3D</h3>
+        <p>Tap any layout for a full dimensioned blueprint and a 3D massing view, in English and Hindi room labels.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="features" id="features">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">Why Muskaan.ai</div>
+      <h2>Built for how Indian homes actually get planned.</h2>
+      <p>No stock renders pretending to be your house. Every layout is computed from your plot's real dimensions.</p>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card reveal">
+        <div class="feature-icon"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M9 21V9"/></svg></div>
+        <h3>Real room math</h3>
+        <p>Rooms are proportioned to your plot's actual area — a 40×30 plot and a 60×40 plot get genuinely different layouts.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M2 12h4l3-9 4 18 3-9h6"/></svg></div>
+        <h3>10 variations, not one</h3>
+        <p>Compare hall-facing vs courtyard-facing, compact vs open kitchen — ten genuinely different options per plot.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><path d="M3.27 6.96L12 12l8.73-5.04M12 22.08V12"/></svg></div>
+        <h3>Blueprint + 3D, together</h3>
+        <p>Every layout ships with a dimensioned 2D blueprint and an isometric 3D massing view — flip between them instantly.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></div>
+        <h3>Hindi + English labels</h3>
+        <p>बैठक, रसोई, शयन कक्ष — room names in both languages, because that's how Indian families actually talk about their homes.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+        <h3>Save and revisit</h3>
+        <p>Create an account, save the layouts you like, and come back to compare them before you talk to a contractor.</p>
+      </div>
+      <div class="feature-card reveal">
+        <div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></div>
+        <h3>Interior direction</h3>
+        <p>Pick a design language — Modern, Traditional, Contemporary, Industrial — as a starting mood board for your interiors.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="showcase">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">What you get</div>
+      <h2>Every layout, laid out clearly.</h2>
+    </div>
+    <div class="showcase-grid" id="showcaseGrid"></div>
+  </div>
+</section>
+
+<section class="faq" id="faq">
+  <div class="wrap">
+    <div class="section-head reveal">
+      <div class="eyebrow">Good to know</div>
+      <h2>Questions people usually ask.</h2>
+    </div>
+    <div class="faq-list reveal">
+      <div class="faq-item">
+        <button class="faq-q"><span>Are the layouts generated by AI, or real photos?</span><span class="plus">+</span></button>
+        <div class="faq-a"><p>Neither, exactly — they're computed by a room-allocation algorithm from your actual plot dimensions. They're real, proportioned drawings, not AI-generated or stock images.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q"><span>Is this a substitute for hiring an architect?</span><span class="plus">+</span></button>
+        <div class="faq-a"><p>No — think of it as a starting point for the conversation. Use these layouts to figure out what you want before you brief a licensed architect for construction-ready drawings.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q"><span>Do I need an account to try it?</span><span class="plus">+</span></button>
+        <div class="faq-a"><p>No — generating layouts is free and open. You only need an account to save plans for later.</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q"><span>What plot sizes does it support?</span><span class="plus">+</span></button>
+        <div class="faq-a"><p>Anywhere from small urban plots to large independent-house plots — the algorithm scales room counts (like adding a 3rd or 4th bedroom, or a garage) based on your total area.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="final-cta">
+  <div class="grid-bg"></div>
+  <div class="wrap reveal">
+    <h2>Stop guessing what fits. <em>See it.</em></h2>
+    <p>Enter your plot size and get 10 layouts in the time it takes to make chai.</p>
+    <a class="cta-lg" href="muskaan-ai.html">Plan your plot — free</a>
+  </div>
+</section>
+
+<footer>Muskaan.ai — layouts generated from your plot's real dimensions, not stock images.</footer>
+
+<script>
+/* ---------- nav scroll state ---------- */
+const nav = document.getElementById('siteNav');
+window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 40));
+
+/* ---------- scroll reveal ---------- */
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+}, { threshold:0.15 });
+document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+document.querySelectorAll('.step, .feature-card').forEach((el,i) => {
+  el.classList.add('reveal');
+  el.style.transitionDelay = (i%6)*0.08 + 's';
+  io.observe(el);
+});
+
+/* ---------- hero animated blueprint (staggered room pop-in) ---------- */
+const heroRooms = [
+  { x:34, y:34, w:150, h:120, fill:'#EADFC5', delay:.6 },   // hall
+  { x:34, y:158, w:90, h:100, fill:'#F0DCC9', delay:.75 },  // kitchen
+  { x:128, y:158, w:56, h:100, fill:'#CFE3DD', delay:.85 }, // washroom
+  { x:188, y:34, w:178, h:130, fill:'#E3D3E8', delay:.95 }, // master bedroom
+  { x:188, y:168, w:88, h:96, fill:'#D7E3EA', delay:1.1 },  // bedroom 2
+  { x:280, y:168, w:86, h:96, fill:'#DDD7CE', delay:1.2 },  // garage
+  { x:34, y:262, w:332, h:104, fill:'#E8ECD9', delay:1.35 } // balcony/open area
+];
+const g = document.getElementById('heroRooms');
+heroRooms.forEach(r => {
+  const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+  rect.setAttribute('x', r.x); rect.setAttribute('y', r.y);
+  rect.setAttribute('width', r.w); rect.setAttribute('height', r.h);
+  rect.setAttribute('fill', r.fill);
+  rect.setAttribute('stroke', '#0F2A47'); rect.setAttribute('stroke-width','1');
+  rect.setAttribute('class','room-rect');
+  rect.style.animationDelay = r.delay + 's';
+  g.appendChild(rect);
+});
+
+/* ---------- showcase mock cards (static illustrative blueprints) ---------- */
+const showcaseLayouts = [
+  [{x:0,y:0,w:60,h:50,f:'#EADFC5'},{x:60,y:0,w:40,h:50,f:'#E3D3E8'},{x:0,y:50,w:35,h:30,f:'#F0DCC9'},{x:35,y:50,w:30,h:30,f:'#CFE3DD'},{x:65,y:50,w:35,h:30,f:'#D7E3EA'}],
+  [{x:0,y:0,w:45,h:40,f:'#E3D3E8'},{x:45,y:0,w:55,h:40,f:'#EADFC5'},{x:0,y:40,w:30,h:40,f:'#F0DCC9'},{x:30,y:40,w:35,h:40,f:'#DDD7CE'},{x:65,y:40,w:35,h:40,f:'#D7E3EA'}],
+  [{x:0,y:0,w:100,h:35,f:'#EADFC5'},{x:0,y:35,w:40,h:45,f:'#E3D3E8'},{x:40,y:35,w:30,h:45,f:'#CFE3DD'},{x:70,y:35,w:30,h:45,f:'#F0DCC9'}],
+  [{x:0,y:0,w:55,h:80,f:'#E3D3E8'},{x:55,y:0,w:45,h:40,f:'#EADFC5'},{x:55,y:40,w:45,h:20,f:'#CFE3DD'},{x:55,y:60,w:45,h:20,f:'#D7E3EA'}]
+];
+const showcaseGrid = document.getElementById('showcaseGrid');
+showcaseLayouts.forEach((rooms,i) => {
+  const card = document.createElement('div');
+  card.className = 'mock-card reveal';
+  card.style.transitionDelay = (i*0.1) + 's';
+  const rects = rooms.map(r => `<rect x="${r.x}" y="${r.y}" width="${r.w}" height="${r.h}" fill="${r.f}" stroke="#8A7F63" stroke-width="0.6"/>`).join('');
+  card.innerHTML = `<svg viewBox="0 0 100 80"><rect x="0" y="0" width="100" height="80" fill="none" stroke="#B5533C" stroke-width="1"/>${rects}</svg>
+    <div class="mock-meta">Layout 0${i+1} · sample</div>`;
+  showcaseGrid.appendChild(card);
+  io.observe(card);
+});
+
+/* ---------- FAQ accordion ---------- */
+document.querySelectorAll('.faq-item').forEach(item => {
+  const btn = item.querySelector('.faq-q');
+  const answer = item.querySelector('.faq-a');
+  btn.addEventListener('click', () => {
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(o => { o.classList.remove('open'); o.querySelector('.faq-a').style.maxHeight = null; });
+    if(!isOpen){ item.classList.add('open'); answer.style.maxHeight = answer.scrollHeight + 'px'; }
+  });
+});
+</script>
+</body>
+</html>

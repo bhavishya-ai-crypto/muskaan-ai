@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Muskaan.ai — Plot to Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,400..600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0F2A47; --navy-deep:#091C30; --line:#7FB3E8; --line-dim:rgba(127,179,232,.28);
+    --paper:#F6F2E9; --paper-line:#E4DCC8; --sandstone:#C9A66B; --terracotta:#B5533C; --terracotta-deep:#8F3F2E;
+    --ink:#201C16; --ink-soft:#5B5347; --white:#fff;
+    --font-display:'Fraunces',serif; --font-body:'IBM Plex Sans',sans-serif; --font-mono:'IBM Plex Mono',monospace; --font-dev:'Noto Sans Devanagari',sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--paper); color:var(--ink); font-family:var(--font-body); line-height:1.5;}
+  a{color:inherit;}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 28px;}
+
+  /* ---------- HEADER ---------- */
+  header{background:var(--navy-deep); color:var(--white); border-bottom:1px solid var(--line-dim);}
+  header .wrap{display:flex; align-items:center; justify-content:space-between; padding-top:18px; padding-bottom:18px;}
+  .logo{font-family:var(--font-display); font-style:italic; font-size:26px; font-weight:600; letter-spacing:.3px;}
+  .logo span{color:var(--sandstone); font-style:normal;}
+  .tagline{font-family:var(--font-mono); font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--line); margin-top:2px;}
+  nav{display:flex; gap:28px; font-family:var(--font-mono); font-size:13px; letter-spacing:.5px;}
+  nav a{opacity:.8; text-decoration:none; border-bottom:1px solid transparent; padding-bottom:3px; cursor:pointer;}
+  nav a:hover{opacity:1; border-color:var(--sandstone);}
+  .auth-widget{display:flex; align-items:center; gap:10px; font-family:var(--font-mono); font-size:12.5px;}
+  .auth-widget .btn{padding:9px 16px; font-size:11.5px;}
+  .auth-widget .user-pill{color:var(--sandstone);}
+  .auth-widget button.link{background:none; border:none; color:var(--line); text-decoration:underline; cursor:pointer; font-family:var(--font-mono); font-size:12px;}
+
+  /* ---------- AUTH / SAVED-PLANS MODAL ---------- */
+  .auth-form{display:grid; gap:14px; padding:22px 26px 26px;}
+  .auth-form .field label{color:var(--ink-soft); font-family:var(--font-mono); font-size:11px; letter-spacing:1px; text-transform:uppercase; display:block; margin-bottom:6px;}
+  .auth-form .field input{width:100%; padding:11px 13px; border:1px solid var(--paper-line); border-radius:2px; font-family:var(--font-body); font-size:14px; color:var(--ink); background:var(--white);}
+  .auth-form .field input:focus{outline:none; border-color:var(--terracotta);}
+  .auth-error{background:#FBE7E2; color:var(--terracotta-deep); font-family:var(--font-mono); font-size:12px; padding:10px 12px; border-radius:3px; display:none;}
+  .auth-error.show{display:block;}
+  .auth-switch{font-family:var(--font-mono); font-size:12px; color:var(--ink-soft);}
+  .auth-switch button{background:none; border:none; color:var(--terracotta); text-decoration:underline; cursor:pointer; font-family:var(--font-mono); font-size:12px;}
+  .saved-plan-row{display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--paper-line); gap:12px;}
+  .saved-plan-row .info{font-family:var(--font-mono); font-size:12.5px; color:var(--ink-soft); cursor:pointer;}
+  .saved-plan-row .info strong{display:block; font-family:var(--font-body); font-size:14.5px; color:var(--ink); margin-bottom:2px;}
+  .saved-plan-row button.delete{background:none; border:1px solid var(--paper-line); color:var(--terracotta); font-family:var(--font-mono); font-size:11px; padding:6px 10px; border-radius:2px; cursor:pointer;}
+  .empty-state{font-family:var(--font-mono); font-size:13px; color:var(--ink-soft); padding:20px 0;}
+  .save-plan-btn{margin-top:16px;}
+  .save-status{font-family:var(--font-mono); font-size:12px; margin-top:8px; color:var(--ink-soft);}
+
+  /* ---------- HERO ---------- */
+  .hero{background:var(--navy); color:var(--white); position:relative; overflow:hidden;}
+  .hero .wrap{display:grid; grid-template-columns:1fr 1fr; gap:48px; padding-top:64px; padding-bottom:64px; position:relative; z-index:2;}
+  .grid-bg{position:absolute; inset:0; background-image:
+      linear-gradient(var(--line-dim) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line-dim) 1px, transparent 1px);
+    background-size:32px 32px; opacity:.5; z-index:1;}
+  .eyebrow{font-family:var(--font-mono); font-size:12px; letter-spacing:3px; text-transform:uppercase; color:var(--sandstone); margin-bottom:14px;}
+  h1{font-family:var(--font-display); font-weight:500; font-size:44px; line-height:1.1; margin-bottom:18px;}
+  h1 em{font-style:italic; color:var(--sandstone);}
+  .hero p.lead{font-size:16px; color:#CBD9E8; max-width:440px; margin-bottom:32px;}
+
+  .plot-form{display:grid; gap:16px;}
+  .field-row{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .field label{display:block; font-family:var(--font-mono); font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--line); margin-bottom:7px;}
+  .field input, .field select{width:100%; background:rgba(255,255,255,.06); border:1px solid var(--line-dim); color:var(--white); font-family:var(--font-mono); font-size:16px; padding:12px 14px; border-radius:2px;}
+  .field input:focus, .field select:focus{outline:none; border-color:var(--sandstone); background:rgba(255,255,255,.1);}
+  .field select option{color:#000;}
+  .btn{font-family:var(--font-mono); font-size:13px; letter-spacing:1px; text-transform:uppercase; border:none; cursor:pointer; padding:15px 22px; border-radius:2px; transition:transform .15s ease, background .15s ease;}
+  .btn-primary{background:var(--terracotta); color:var(--white);}
+  .btn-primary:hover{background:var(--terracotta-deep);}
+  .btn-primary:active{transform:scale(.98);}
+  .btn-ghost{background:transparent; border:1px solid var(--line-dim); color:var(--white);}
+  .btn-ghost:hover{border-color:var(--sandstone); color:var(--sandstone);}
+  .hint{font-family:var(--font-mono); font-size:12px; color:#8FA9C2;}
+
+  .preview-box{display:flex; align-items:center; justify-content:center;}
+  .preview-box svg{width:100%; height:auto; max-width:440px;}
+  .preview-line{stroke:var(--sandstone); stroke-width:2; fill:none;}
+  .dim-text{font-family:var(--font-mono); font-size:12px; fill:var(--line);}
+  .plot-rect{fill:rgba(201,166,107,.08); stroke:var(--sandstone); stroke-width:2; stroke-dasharray:1400; stroke-dashoffset:1400; transition:stroke-dashoffset 1s ease;}
+  .plot-rect.drawn{stroke-dashoffset:0;}
+
+  /* ---------- SECTION HEADS ---------- */
+  section{padding:64px 0;}
+  .section-head{margin-bottom:36px;}
+  .section-head .eyebrow{color:var(--terracotta);}
+  .section-head h2{font-family:var(--font-display); font-weight:500; font-size:32px; color:var(--ink);}
+  .section-head p{color:var(--ink-soft); max-width:520px; margin-top:8px;}
+
+  /* ---------- RESULTS GRID ---------- */
+  .results{background:var(--paper);}
+  .results-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:22px;}
+  .plan-card{background:var(--white); border:1px solid var(--paper-line); border-radius:4px; overflow:hidden; cursor:pointer; transition:box-shadow .2s ease, transform .2s ease;}
+  .plan-card:hover{box-shadow:0 12px 28px rgba(30,25,15,.12); transform:translateY(-3px);}
+  .plan-card .thumb{background:var(--paper); border-bottom:1px solid var(--paper-line); aspect-ratio:1/1;}
+  .plan-card .thumb svg{width:100%; height:100%; display:block;}
+  .plan-card .meta{padding:14px 16px;}
+  .plan-card .meta .num{font-family:var(--font-mono); font-size:11px; letter-spacing:1.5px; color:var(--terracotta); text-transform:uppercase;}
+  .plan-card .meta h3{font-family:var(--font-display); font-size:18px; font-weight:500; margin:4px 0 6px;}
+  .plan-card .meta .area{font-family:var(--font-mono); font-size:12px; color:var(--ink-soft);}
+
+  /* ---------- MODAL ---------- */
+  .modal-backdrop{position:fixed; inset:0; background:rgba(9,28,48,.72); display:flex; align-items:center; justify-content:center; z-index:50; padding:20px;}
+  .modal-backdrop[hidden]{display:none;}
+  .modal{background:var(--white); max-width:920px; width:100%; max-height:90vh; overflow-y:auto; border-radius:6px;}
+  .modal-head{display:flex; align-items:center; justify-content:space-between; padding:20px 26px; border-bottom:1px solid var(--paper-line); position:sticky; top:0; background:var(--white); z-index:2;}
+  .modal-head h3{font-family:var(--font-display); font-size:22px; font-weight:500;}
+  .close-btn{background:none; border:none; font-size:22px; cursor:pointer; color:var(--ink-soft); line-height:1;}
+  .modal-tabs{display:flex; gap:8px; padding:16px 26px 0;}
+  .tab-btn{font-family:var(--font-mono); font-size:12px; letter-spacing:1px; text-transform:uppercase; padding:9px 16px; border:1px solid var(--paper-line); background:var(--paper); cursor:pointer; border-radius:2px 2px 0 0;}
+  .tab-btn.active{background:var(--white); border-bottom:1px solid var(--white); color:var(--terracotta); font-weight:600;}
+  .modal-body{padding:24px 26px 30px;}
+  .modal-body svg{width:100%; height:auto; background:var(--paper); border:1px solid var(--paper-line); border-radius:4px;}
+  .legend{display:flex; flex-wrap:wrap; gap:10px 18px; margin-top:16px;}
+  .legend-item{display:flex; align-items:center; gap:7px; font-family:var(--font-mono); font-size:12px; color:var(--ink-soft);}
+  .swatch{width:11px; height:11px; border-radius:2px; display:inline-block;}
+
+  /* ---------- STYLE SECTION ---------- */
+  .style-section{background:var(--navy-deep); color:var(--white);}
+  .style-section .section-head h2, .style-section .section-head .eyebrow{color:var(--white);}
+  .style-section .section-head .eyebrow{color:var(--sandstone);}
+  .style-section .section-head p{color:#B9C7D6;}
+  .note-banner{background:rgba(255,255,255,.06); border:1px solid var(--line-dim); border-radius:4px; padding:14px 18px; font-family:var(--font-mono); font-size:12.5px; color:#CBD9E8; margin-bottom:32px; line-height:1.6;}
+  .style-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:20px;}
+  .style-card{background:rgba(255,255,255,.04); border:1px solid var(--line-dim); border-radius:4px; padding:20px; transition:border-color .2s ease;}
+  .style-card:hover{border-color:var(--sandstone);}
+  .style-card h3{font-family:var(--font-display); font-size:19px; margin-bottom:8px;}
+  .style-card p{font-size:13px; color:#B9C7D6; margin-bottom:14px;}
+  .palette{display:flex; gap:6px; margin-bottom:16px;}
+  .palette span{width:22px; height:22px; border-radius:50%; border:1px solid rgba(255,255,255,.2);}
+  .style-card .btn-ghost{width:100%;}
+
+  /* ---------- COMPARE ---------- */
+  .plan-card{position:relative;}
+  .compare-check{position:absolute; top:10px; left:10px; z-index:3; width:22px; height:22px; border-radius:4px; background:rgba(255,255,255,.92); border:1.5px solid var(--paper-line); display:flex; align-items:center; justify-content:center; cursor:pointer;}
+  .compare-check input{width:16px; height:16px; cursor:pointer; accent-color:var(--terracotta);}
+  .compare-bar{position:sticky; bottom:20px; margin-top:22px; background:var(--navy-deep); color:var(--white); border-radius:6px; padding:14px 20px; display:flex; align-items:center; gap:16px; font-family:var(--font-mono); font-size:13px; box-shadow:0 10px 26px rgba(9,28,48,.3);}
+  .compare-bar .btn{padding:10px 18px; font-size:12px;}
+
+  /* ---------- FLOOR TABS ---------- */
+  .floor-tabs{display:flex; gap:8px; padding:16px 26px 0;}
+  .floor-tab-btn{font-family:var(--font-mono); font-size:11.5px; letter-spacing:.5px; text-transform:uppercase; padding:8px 14px; border:1px solid var(--terracotta); background:var(--white); color:var(--terracotta); cursor:pointer; border-radius:2px;}
+  .floor-tab-btn.active{background:var(--terracotta); color:var(--white);}
+
+  /* ---------- VASTU / COST PANELS ---------- */
+  .info-panel{margin-top:22px; border:1px solid var(--paper-line); border-radius:4px; padding:18px 20px;}
+  .info-panel-head{display:flex; align-items:center; justify-content:space-between; font-family:var(--font-display); font-size:16px; margin-bottom:12px;}
+  .vastu-badge{font-family:var(--font-mono); font-size:13px; padding:4px 10px; border-radius:10px; background:var(--paper); color:var(--ink-soft);}
+  .vastu-badge.good{background:#E1EEE5; color:#3E7A55;}
+  .vastu-badge.ok{background:#F4E9D2; color:#9A7523;}
+  .vastu-badge.low{background:#FBE7E2; color:var(--terracotta-deep);}
+  .vastu-tips{list-style:none; display:grid; gap:7px;}
+  .vastu-tips li{font-size:13px; color:var(--ink-soft); padding-left:14px; position:relative;}
+  .vastu-tips li::before{content:'—'; position:absolute; left:0; color:var(--terracotta);}
+  .disclaimer{font-family:var(--font-mono); font-size:10.5px; color:#9A9078; margin-top:12px; line-height:1.5;}
+  .quality-tabs{display:flex; gap:8px; margin-bottom:14px;}
+  .quality-btn{font-family:var(--font-mono); font-size:11.5px; padding:8px 14px; border:1px solid var(--paper-line); background:var(--paper); color:var(--ink-soft); cursor:pointer; border-radius:2px;}
+  .quality-btn.active{background:var(--sandstone); color:var(--white); border-color:var(--sandstone);}
+  .cost-total{font-family:var(--font-display); font-size:26px; color:var(--ink); margin-bottom:12px;}
+  .cost-breakdown{display:grid; gap:8px;}
+  .cost-row{display:flex; align-items:center; gap:10px; font-family:var(--font-mono); font-size:11.5px; color:var(--ink-soft);}
+  .cost-row .bar-track{flex:1; height:6px; background:var(--paper-line); border-radius:3px; overflow:hidden;}
+  .cost-row .bar-fill{height:100%; background:var(--sandstone);}
+  .cost-row .amt{width:90px; text-align:right;}
+  .action-row{display:flex; flex-wrap:wrap; gap:12px; margin-top:24px;}
+
+  /* ---------- COMPARE MODAL ---------- */
+  .compare-grid{display:grid; grid-template-columns:1fr 1fr; gap:24px;}
+  .compare-col h4{font-family:var(--font-display); font-size:17px; margin-bottom:10px;}
+  .compare-col svg{width:100%; border:1px solid var(--paper-line); border-radius:4px; background:var(--paper);}
+  .compare-stats{margin-top:12px; font-family:var(--font-mono); font-size:12px; color:var(--ink-soft); display:grid; gap:6px;}
+  @media(max-width:700px){ .compare-grid{grid-template-columns:1fr;} }
+
+  /* ---------- PRINT ---------- */
+  @media print{
+    body *{visibility:hidden;}
+    #printArea, #printArea *{visibility:visible;}
+    #printArea{position:absolute; top:0; left:0; width:100%; padding:0;}
+    .save-plan-btn, #pdfBtn, #waBtn, .save-status{display:none !important;}
+  }
+
+  footer{background:var(--navy-deep); color:#8FA9C2; text-align:center; padding:26px 0; font-family:var(--font-mono); font-size:11.5px; letter-spacing:.5px; border-top:1px solid var(--line-dim);}
+
+  @media(max-width:820px){
+    .hero .wrap{grid-template-columns:1fr;}
+    h1{font-size:32px;}
+    nav{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div>
+      <div class="logo">Muskaan<span>.ai</span></div>
+      <div class="tagline">Plot size → floor plan</div>
+    </div>
+    <nav>
+      <a onclick="scrollTo('hero')">Plan a Plot</a>
+      <a onclick="scrollTo('resultsSection')">Layouts</a>
+      <a onclick="scrollTo('styleSection')">Interior &amp; Exterior</a>
+      <a onclick="openPlansModal()">My Plans</a>
+    </nav>
+    <div id="authWidget" class="auth-widget"></div>
+  </div>
+</header>
+
+<section class="hero" id="hero">
+  <div class="grid-bg"></div>
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">Residential architecture, automated</div>
+      <h1>From plot size to <em>floor plan.</em></h1>
+      <p class="lead">Enter your plot dimensions. Muskaan.ai lays out 10 layout options — bedrooms, washrooms, kitchen, garage and hall — each with a blueprint and a 3D view.</p>
+
+      <form class="plot-form" id="plotForm">
+        <div class="field-row">
+          <div class="field">
+            <label for="lengthInput">Plot length (ft)</label>
+            <input type="number" id="lengthInput" min="15" max="200" value="40" required>
+          </div>
+          <div class="field">
+            <label for="widthInput">Plot width (ft)</label>
+            <input type="number" id="widthInput" min="15" max="200" value="30" required>
+          </div>
+        </div>
+        <div class="field">
+          <label for="facingInput">Facing direction (main entrance)</label>
+          <select id="facingInput">
+            <option>North</option>
+            <option>South</option>
+            <option>East</option>
+            <option>West</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="floorsInput">Floors</label>
+          <select id="floorsInput">
+            <option value="1">Ground floor only (G)</option>
+            <option value="2">G + 1 floor</option>
+            <option value="3">G + 2 floors</option>
+          </select>
+        </div>
+        <div style="display:flex; align-items:center; gap:16px; margin-top:4px;">
+          <button type="submit" class="btn btn-primary">Generate 10 Layouts</button>
+          <span class="hint" id="areaHint">Plot area: 1,200 sq ft</span>
+        </div>
+      </form>
+    </div>
+
+    <div class="preview-box">
+      <svg id="previewSvg" viewBox="0 0 440 440"></svg>
+    </div>
+  </div>
+</section>
+
+<section class="results" id="resultsSection" hidden>
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">10 generated options</div>
+      <h2>Your layouts</h2>
+      <p>Each option is generated by a room-allocation algorithm from your plot size — real proportions, not stock images. Tap any card for the full blueprint and 3D view.</p>
+    </div>
+    <div class="results-grid" id="resultsGrid"></div>
+    <div class="compare-bar" id="compareBar" hidden>
+      <span id="compareCount">2 layouts selected</span>
+      <button class="btn btn-primary" id="compareBtn" type="button">Compare</button>
+      <button class="btn btn-ghost" id="compareClearBtn" type="button" style="border-color:var(--paper-line); color:var(--ink-soft);">Clear</button>
+    </div>
+  </div>
+</section>
+
+<section class="style-section" id="styleSection">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Optional layer</div>
+      <h2>Interior &amp; exterior design</h2>
+      <p>Pick a design direction for your home's interior and exterior finishes.</p>
+    </div>
+    <div class="note-banner">
+      ⓘ Honest note: photo-real AI renders (10 images per style) require connecting an image-generation API — one isn't wired up in this prototype. What's shown below is each direction's real mood board: palette, materials, character. Connect an image API later and this section can generate the actual 10 photos per style.
+    </div>
+    <div class="style-grid" id="styleGrid"></div>
+  </div>
+</section>
+
+<footer>Muskaan.ai — a floor-plan prototype · layouts generated on-device, no data leaves your browser</footer>
+
+<div class="modal-backdrop" id="modalBackdrop" hidden>
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">Layout 01</h3>
+      <button class="close-btn" id="closeModal">×</button>
+    </div>
+    <div class="floor-tabs" id="floorTabs" hidden></div>
+    <div class="modal-tabs">
+      <button class="tab-btn active" id="tabBlueprint">Blueprint</button>
+      <button class="tab-btn" id="tab3d">3D View</button>
+    </div>
+    <div class="modal-body" id="printArea">
+      <svg id="modalSvg" viewBox="0 0 600 600"></svg>
+      <div class="legend" id="modalLegend"></div>
+
+      <div class="info-panel">
+        <div class="info-panel-head">
+          <span>Vastu guidance</span>
+          <span class="vastu-badge" id="vastuBadge">—</span>
+        </div>
+        <ul class="vastu-tips" id="vastuTips"></ul>
+        <p class="disclaimer">Illustrative, traditional guidance — not a scientific or structural claim. Ground-floor rooms only.</p>
+      </div>
+
+      <div class="info-panel">
+        <div class="info-panel-head"><span>Rough cost estimate</span></div>
+        <div class="quality-tabs" id="qualityTabs">
+          <button class="quality-btn" data-q="Basic">Basic</button>
+          <button class="quality-btn active" data-q="Standard">Standard</button>
+          <button class="quality-btn" data-q="Premium">Premium</button>
+        </div>
+        <div class="cost-total" id="costTotal">—</div>
+        <div class="cost-breakdown" id="costBreakdown"></div>
+        <p class="disclaimer">Rough per-sq-ft estimate for direction only — get quotes from local contractors for an accurate figure.</p>
+      </div>
+
+      <div class="action-row">
+        <button class="btn btn-primary save-plan-btn" id="savePlanBtn" type="button">Save this plan</button>
+        <button class="btn btn-ghost" id="pdfBtn" type="button" style="border-color:var(--paper-line); color:var(--ink);">Download PDF</button>
+        <button class="btn btn-ghost" id="waBtn" type="button" style="border-color:var(--paper-line); color:var(--ink);">Share on WhatsApp</button>
+      </div>
+      <div class="save-status" id="saveStatus"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="compareBackdrop" hidden>
+  <div class="modal" style="max-width:960px;">
+    <div class="modal-head">
+      <h3>Comparing 2 layouts</h3>
+      <button class="close-btn" id="closeCompareModal">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="compare-grid" id="compareGrid"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="authBackdrop" hidden>
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-head">
+      <h3 id="authModalTitle">Log in</h3>
+      <button class="close-btn" id="closeAuthModal">×</button>
+    </div>
+    <form class="auth-form" id="authForm">
+      <div class="auth-error" id="authError"></div>
+      <div class="field" id="nameFieldWrap" hidden>
+        <label for="authName">Name</label>
+        <input type="text" id="authName">
+      </div>
+      <div class="field">
+        <label for="authEmail">Email</label>
+        <input type="email" id="authEmail" required>
+      </div>
+      <div class="field">
+        <label for="authPassword">Password</label>
+        <input type="password" id="authPassword" required minlength="6">
+      </div>
+      <button type="submit" class="btn btn-primary" id="authSubmitBtn">Log in</button>
+      <div class="auth-switch" id="authSwitch">New here? <button type="button" id="authSwitchBtn">Create an account</button></div>
+    </form>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="plansBackdrop" hidden>
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-head">
+      <h3>My saved plans</h3>
+      <button class="close-btn" id="closePlansModal">×</button>
+    </div>
+    <div class="modal-body" id="plansListBody"></div>
+  </div>
+</div>
+
+<script>
+/* ============ BACKEND CONNECTION ============ */
+const API_BASE = 'http://localhost:4000/api';
+let authToken = localStorage.getItem('muskaan_token') || null;
+let currentUser = JSON.parse(localStorage.getItem('muskaan_user') || 'null');
+
+function setAuth(token, user){
+  authToken = token; currentUser = user;
+  if(token){ localStorage.setItem('muskaan_token', token); localStorage.setItem('muskaan_user', JSON.stringify(user)); }
+  else { localStorage.removeItem('muskaan_token'); localStorage.removeItem('muskaan_user'); }
+  renderAuthWidget();
+}
+
+function renderAuthWidget(){
+  const el = document.getElementById('authWidget');
+  if(currentUser){
+    el.innerHTML = `<span class="user-pill">Hi, ${currentUser.name}</span><button class="link" id="logoutBtn">Log out</button>`;
+    document.getElementById('logoutBtn').addEventListener('click', () => setAuth(null, null));
+  } else {
+    el.innerHTML = `<button class="btn btn-ghost" id="loginBtn">Log in</button>`;
+    document.getElementById('loginBtn').addEventListener('click', () => openAuthModal('login'));
+  }
+}
+
+let authMode = 'login';
+function openAuthModal(mode){
+  authMode = mode;
+  document.getElementById('authModalTitle').textContent = mode === 'login' ? 'Log in' : 'Create an account';
+  document.getElementById('authSubmitBtn').textContent = mode === 'login' ? 'Log in' : 'Sign up';
+  document.getElementById('nameFieldWrap').hidden = mode === 'login';
+  document.getElementById('authSwitch').innerHTML = mode === 'login'
+    ? `New here? <button type="button" id="authSwitchBtn">Create an account</button>`
+    : `Already have an account? <button type="button" id="authSwitchBtn">Log in</button>`;
+  document.getElementById('authSwitchBtn').addEventListener('click', () => openAuthModal(mode === 'login' ? 'signup' : 'login'));
+  document.getElementById('authError').classList.remove('show');
+  document.getElementById('authForm').reset();
+  document.getElementById('authBackdrop').hidden = false;
+}
+document.getElementById('closeAuthModal').addEventListener('click', () => document.getElementById('authBackdrop').hidden = true);
+document.getElementById('authBackdrop').addEventListener('click', e => { if(e.target.id === 'authBackdrop') document.getElementById('authBackdrop').hidden = true; });
+
+document.getElementById('authForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const name = document.getElementById('authName').value.trim();
+  const errBox = document.getElementById('authError');
+  errBox.classList.remove('show');
+  try {
+    const endpoint = authMode === 'login' ? '/auth/login' : '/auth/signup';
+    const body = authMode === 'login' ? { email, password } : { name, email, password };
+    const res = await fetch(API_BASE + endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    const data = await res.json();
+    if(!res.ok){ throw new Error(data.error || 'Something went wrong.'); }
+    setAuth(data.token, data.user);
+    document.getElementById('authBackdrop').hidden = true;
+  } catch(err){
+    errBox.textContent = err.message.includes('fetch')
+      ? "Can't reach the backend — make sure `npm start` is running on localhost:4000."
+      : err.message;
+    errBox.classList.add('show');
+  }
+});
+renderAuthWidget();
+
+/* ============ SAVED PLANS ============ */
+function openPlansModal(){
+  if(!currentUser){ openAuthModal('login'); return; }
+  document.getElementById('plansBackdrop').hidden = false;
+  loadSavedPlans();
+}
+document.getElementById('closePlansModal').addEventListener('click', () => document.getElementById('plansBackdrop').hidden = true);
+document.getElementById('plansBackdrop').addEventListener('click', e => { if(e.target.id === 'plansBackdrop') document.getElementById('plansBackdrop').hidden = true; });
+
+async function loadSavedPlans(){
+  const body = document.getElementById('plansListBody');
+  body.innerHTML = '<div class="empty-state">Loading…</div>';
+  try {
+    const res = await fetch(API_BASE + '/plans', { headers:{ 'Authorization':'Bearer '+authToken } });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error);
+    if(data.plans.length === 0){ body.innerHTML = '<div class="empty-state">No saved plans yet — generate a layout and hit "Save this plan".</div>'; return; }
+    body.innerHTML = '';
+    data.plans.forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'saved-plan-row';
+      row.innerHTML = `
+        <div class="info">
+          <strong>${p.length}×${p.width} ft · ${p.facing}</strong>
+          ${p.rooms.length} rooms · saved ${new Date(p.createdAt).toLocaleDateString()}
+        </div>
+        <button class="delete" data-id="${p.id}">Delete</button>`;
+      row.querySelector('.info').addEventListener('click', () => {
+        document.getElementById('plansBackdrop').hidden = true;
+        const floors = p.floors && p.floors.length ? p.floors : [{ label:'Ground Floor', rooms:p.rooms }];
+        openModal({ id:'saved', floors, L:p.length, W:p.width }, p.facing);
+      });
+      row.querySelector('.delete').addEventListener('click', async ev => {
+        ev.stopPropagation();
+        await fetch(API_BASE + '/plans/' + p.id, { method:'DELETE', headers:{ 'Authorization':'Bearer '+authToken } });
+        loadSavedPlans();
+      });
+      body.appendChild(row);
+    });
+  } catch(err){
+    body.innerHTML = `<div class="empty-state">Couldn't load plans — is the backend running? (${err.message})</div>`;
+  }
+}
+
+/* ============ ROOM CONFIG (with Hindi labels — genuine Indian home vocabulary) ============ */
+const ROOM_TYPES = {
+  hall:      { name:'Main Hall',        dev:'बैठक',        ratio:0.20, fill:'#EADFC5', wall:'#C9A66B', dark:'#A9855A' },
+  kitchen:   { name:'Kitchen',          dev:'रसोई',         ratio:0.10, fill:'#F0DCC9', wall:'#D2A679', dark:'#B08558' },
+  master:    { name:'Master Bedroom',   dev:'शयन कक्ष',      ratio:0.15, fill:'#E3D3E8', wall:'#B79BC4', dark:'#93789F' },
+  masterwc:  { name:'Master Washroom',  dev:'स्नानघर',       ratio:0.045,fill:'#CFE3DD', wall:'#8FBBAE', dark:'#6E998C' },
+  bed2:      { name:'Bedroom 2',        dev:'कमरा',         ratio:0.11, fill:'#D7E3EA', wall:'#9CB8C7', dark:'#7A97A6' },
+  wc2:       { name:'Washroom',         dev:'स्नानघर',       ratio:0.035,fill:'#CFE3DD', wall:'#8FBBAE', dark:'#6E998C' },
+  bed3:      { name:'Bedroom 3',        dev:'कमरा',         ratio:0.10, fill:'#D7E3EA', wall:'#9CB8C7', dark:'#7A97A6' },
+  bed4:      { name:'Bedroom 4',        dev:'कमरा',         ratio:0.09, fill:'#D7E3EA', wall:'#9CB8C7', dark:'#7A97A6' },
+  garage:    { name:'Garage',           dev:'गैरेज',        ratio:0.13, fill:'#DDD7CE', wall:'#A69C8C', dark:'#877D6D' },
+  balcony:   { name:'Balcony',          dev:'आंगन',         ratio:0.06, fill:'#E8ECD9', wall:'#B7C299', dark:'#96A179' }
+};
+
+function buildRoomList(area){
+  let keys = ['hall','kitchen','master','masterwc','bed2','wc2'];
+  if(area >= 1100) keys.push('bed3');
+  if(area >= 1800) keys.push('bed4');
+  if(area >= 900) keys.push('garage');
+  keys.push('balcony');
+  let rooms = keys.map(k => ({ key:k, ...ROOM_TYPES[k] }));
+  let total = rooms.reduce((s,r)=>s+r.ratio,0);
+  rooms.forEach(r => r.ratio = r.ratio/total);
+  return rooms;
+}
+
+/* Splits the full room list across floors: ground keeps hall/kitchen/garage/balcony/
+   a common washroom; bedrooms + master washroom move upstairs, split across upper floors. */
+function distributeRoomsAcrossFloors(area, floorsCount){
+  const allRooms = buildRoomList(area);
+  if(floorsCount <= 1) return [{ label:'Ground Floor', rooms:allRooms }];
+  const groundKeys = new Set(['hall','kitchen','garage','balcony','wc2']);
+  const groundRooms = allRooms.filter(r => groundKeys.has(r.key));
+  const upperRooms = allRooms.filter(r => !groundKeys.has(r.key));
+  if(floorsCount === 2){
+    return [{ label:'Ground Floor', rooms:groundRooms }, { label:'First Floor', rooms:upperRooms }];
+  }
+  const mid = Math.ceil(upperRooms.length/2);
+  return [
+    { label:'Ground Floor', rooms:groundRooms },
+    { label:'First Floor', rooms:upperRooms.slice(0,mid) },
+    { label:'Second Floor', rooms:upperRooms.slice(mid) }
+  ];
+}
+
+/* ============ SEEDED RANDOM (for reproducible-but-varied layouts) ============ */
+function seededRandom(seed){ let s = seed; return () => { s = (s*9301+49297)%233280; return s/233280; }; }
+function shuffle(arr, rnd){ let a=arr.slice(); for(let i=a.length-1;i>0;i--){ let j=Math.floor(rnd()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+/* ============ GUILLOTINE PARTITION — assigns each room a real rectangle proportional to its area ============ */
+function partition(x,y,w,h,rooms,rnd){
+  if(rooms.length === 1) return [{...rooms[0], x,y,w,h}];
+  const total = rooms.reduce((s,r)=>s+r.ratio,0);
+  const half = total/2;
+  let bestIdx=1, bestDiff=Infinity, acc=0;
+  for(let i=1;i<rooms.length;i++){
+    acc = rooms.slice(0,i).reduce((s,r)=>s+r.ratio,0);
+    const diff = Math.abs(acc-half);
+    if(diff<bestDiff){bestDiff=diff; bestIdx=i;}
+  }
+  const groupA = rooms.slice(0,bestIdx), groupB = rooms.slice(bestIdx);
+  const aRatio = groupA.reduce((s,r)=>s+r.ratio,0)/total;
+  const dir = w >= h ? 'v' : 'h';
+  let result = [];
+  if(dir === 'v'){
+    const wA = w*aRatio;
+    result = result.concat(partition(x,y,wA,h,groupA,rnd));
+    result = result.concat(partition(x+wA,y,w-wA,h,groupB,rnd));
+  } else {
+    const hA = h*aRatio;
+    result = result.concat(partition(x,y,w,hA,groupA,rnd));
+    result = result.concat(partition(x,y+hA,w,h-hA,groupB,rnd));
+  }
+  return result;
+}
+
+function placeRoomsOnFloor(rooms, length, width, rnd){
+  const copy = shuffle(rooms.map(r => ({...r})), rnd);
+  copy.forEach(r => r.ratio *= (0.85 + rnd()*0.3));
+  const total = copy.reduce((s,r)=>s+r.ratio,0);
+  copy.forEach(r => r.ratio /= total);
+  return partition(0,0,length,width,copy,rnd);
+}
+
+/* Generates every floor for one layout variation, always returning a uniform
+   { id, L, W, floors:[{label, rooms}] } shape regardless of floor count. */
+function generateFloors(length, width, floorsCount, seed){
+  const rnd = seededRandom(seed);
+  const distributed = distributeRoomsAcrossFloors(length*width, floorsCount);
+  return distributed.map(f => ({ label:f.label, rooms: placeRoomsOnFloor(f.rooms, length, width, rnd) }));
+}
+
+/* ============ SVG RENDERING — 2D blueprint ============ */
+function renderBlueprint(placedRooms, plotL, plotW, canvasSize, showLabels){
+  const pad = 24;
+  const scale = (canvasSize - pad*2) / Math.max(plotL, plotW);
+  const offX = pad + (canvasSize - pad*2 - plotL*scale)/2;
+  const offY = pad + (canvasSize - pad*2 - plotW*scale)/2;
+  let svg = `<rect x="${offX-4}" y="${offY-4}" width="${plotL*scale+8}" height="${plotW*scale+8}" fill="none" stroke="#B5533C" stroke-width="2"/>`;
+  placedRooms.forEach(r => {
+    const rx = offX + r.x*scale, ry = offY + r.y*scale, rw = r.w*scale, rh = r.h*scale;
+    svg += `<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" fill="${r.fill}" stroke="#8A7F63" stroke-width="1"/>`;
+    if(showLabels && rw > 40 && rh > 26){
+      svg += `<text x="${rx+rw/2}" y="${ry+rh/2-6}" text-anchor="middle" font-family="IBM Plex Sans" font-size="11" font-weight="600" fill="#201C16">${r.name}</text>`;
+      svg += `<text x="${rx+rw/2}" y="${ry+rh/2+9}" text-anchor="middle" font-family="Noto Sans Devanagari" font-size="10" fill="#5B5347">${r.dev}</text>`;
+      svg += `<text x="${rx+rw/2}" y="${ry+rh/2+22}" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#8A7F63">${r.w.toFixed(0)}×${r.h.toFixed(0)} ft</text>`;
+    } else if(showLabels){
+      svg += `<text x="${rx+rw/2}" y="${ry+rh/2+3}" text-anchor="middle" font-family="IBM Plex Sans" font-size="9" fill="#201C16">${r.name}</text>`;
+    }
+  });
+  return svg;
+}
+
+/* ============ SVG RENDERING — pseudo-3D isometric extrusion ============ */
+function renderIso3D(placedRooms, plotL, plotW, canvasSize){
+  const ISO_X = Math.cos(Math.PI/6), ISO_Y = Math.sin(Math.PI/6);
+  const scale = (canvasSize*0.34) / Math.max(plotL, plotW);
+  const wallH = 34;
+  function iso(px,py,pz){ return { sx:(px-py)*ISO_X*scale, sy:(px+py)*ISO_Y*scale - pz }; }
+  const cx = canvasSize/2, cy = canvasSize*0.28;
+  const sorted = placedRooms.slice().sort((a,b) => (a.x+a.y+a.w+a.h) - (b.x+b.y+b.w+b.h));
+  let svg = '';
+  sorted.forEach(r => {
+    const x0=r.x, y0=r.y, x1=r.x+r.w, y1=r.y+r.h;
+    const base = { a:iso(x0,y0,0), b:iso(x1,y0,0), c:iso(x1,y1,0), d:iso(x0,y1,0) };
+    const top  = { a:iso(x0,y0,wallH), b:iso(x1,y0,wallH), c:iso(x1,y1,wallH), d:iso(x0,y1,wallH) };
+    const pt = p => `${cx+p.sx},${cy+p.sy}`;
+    svg += `<polygon points="${pt(top.b)} ${pt(top.c)} ${pt(base.c)} ${pt(base.b)}" fill="${r.dark}"/>`;
+    svg += `<polygon points="${pt(top.c)} ${pt(top.d)} ${pt(base.d)} ${pt(base.c)}" fill="${r.wall}"/>`;
+    svg += `<polygon points="${pt(top.a)} ${pt(top.b)} ${pt(top.c)} ${pt(top.d)}" fill="${r.fill}" stroke="#ffffff55" stroke-width="0.5"/>`;
+  });
+  return svg;
+}
+
+/* ============ VASTU SCORE (illustrative, rule-of-thumb only) ============ */
+const VASTU_IDEAL = { kitchen:'SE', master:'SW', masterwc:'W', bed2:'NW', wc2:'S', hall:'N', garage:'NW', balcony:'N', bed3:'W', bed4:'NW' };
+const DIR_NAME = { N:'North', S:'South', E:'East', W:'West' };
+function computeVastu(rooms, L, W){
+  const cx = L/2, cy = W/2;
+  let matches = 0, total = 0, tips = [];
+  rooms.forEach(r => {
+    const idealDir = VASTU_IDEAL[r.key];
+    if(!idealDir) return;
+    total++;
+    const rcx = r.x + r.w/2, rcy = r.y + r.h/2;
+    const quadrant = (rcy < cy ? 'N' : 'S') + (rcx < cx ? 'W' : 'E');
+    const ok = idealDir.length === 2 ? quadrant === idealDir : quadrant.includes(idealDir);
+    if(ok) matches++;
+    else tips.push(`${r.name} sits away from the traditional ${idealDir.split('').map(d=>DIR_NAME[d]).join('-')} placement.`);
+  });
+  const score = total ? Math.round((matches/total)*100) : 100;
+  return { score, tips: tips.slice(0,4) };
+}
+function renderVastu(rooms, L, W){
+  const { score, tips } = computeVastu(rooms, L, W);
+  const badge = document.getElementById('vastuBadge');
+  badge.textContent = score + '%';
+  badge.className = 'vastu-badge ' + (score >= 70 ? 'good' : score >= 45 ? 'ok' : 'low');
+  const tipsEl = document.getElementById('vastuTips');
+  tipsEl.innerHTML = tips.length ? tips.map(t => `<li>${t}</li>`).join('') : '<li>This layout follows common Vastu placement for its main rooms.</li>';
+}
+
+/* ============ COST ESTIMATOR (rough, illustrative rates) ============ */
+const COST_RATES = { Basic:1300, Standard:1900, Premium:2700 };
+let activeQuality = 'Standard';
+function renderCost(totalArea){
+  const rate = COST_RATES[activeQuality];
+  const total = totalArea * rate;
+  document.getElementById('costTotal').textContent = '₹' + Math.round(total).toLocaleString('en-IN') + ' (approx.)';
+  const parts = [
+    { label:'Structure', pct:0.45 },
+    { label:'Finishing', pct:0.35 },
+    { label:'Electrical & plumbing', pct:0.12 },
+    { label:'Other / contingency', pct:0.08 }
+  ];
+  document.getElementById('costBreakdown').innerHTML = parts.map(p => `
+    <div class="cost-row">
+      <span style="width:150px;">${p.label}</span>
+      <span class="bar-track"><span class="bar-fill" style="width:${p.pct*100}%"></span></span>
+      <span class="amt">₹${Math.round(total*p.pct).toLocaleString('en-IN')}</span>
+    </div>`).join('');
+}
+document.getElementById('qualityTabs').addEventListener('click', e => {
+  const btn = e.target.closest('.quality-btn');
+  if(!btn) return;
+  activeQuality = btn.dataset.q;
+  document.querySelectorAll('.quality-btn').forEach(b => b.classList.toggle('active', b === btn));
+  renderCost(activeLayout.L * activeLayout.W * activeLayout.floors.length);
+});
+
+/* ============ LIVE PLOT PREVIEW ============ */
+function updatePreview(){
+  const L = parseFloat(document.getElementById('lengthInput').value) || 0;
+  const W = parseFloat(document.getElementById('widthInput').value) || 0;
+  document.getElementById('areaHint').textContent = `Plot area: ${(L*W).toLocaleString()} sq ft`;
+  const svg = document.getElementById('previewSvg');
+  const size = 440, pad = 60;
+  const scale = (size - pad*2) / Math.max(L,W,1);
+  const rw = L*scale, rh = W*scale;
+  const rx = (size-rw)/2, ry = (size-rh)/2;
+  svg.innerHTML = `
+    <rect class="plot-rect" x="${rx}" y="${ry}" width="${rw}" height="${rh}"/>
+    <line class="preview-line" x1="${rx}" y1="${ry-14}" x2="${rx+rw}" y2="${ry-14}" marker-start="url(#arr)" marker-end="url(#arr)"/>
+    <text class="dim-text" x="${rx+rw/2}" y="${ry-20}" text-anchor="middle">${L} ft</text>
+    <line class="preview-line" x1="${rx-14}" y1="${ry}" x2="${rx-14}" y2="${ry+rh}"/>
+    <text class="dim-text" x="${rx-24}" y="${ry+rh/2}" text-anchor="middle" transform="rotate(-90 ${rx-24} ${ry+rh/2})">${W} ft</text>
+  `;
+  requestAnimationFrame(() => svg.querySelector('.plot-rect').classList.add('drawn'));
+}
+['lengthInput','widthInput'].forEach(id => document.getElementById(id).addEventListener('input', updatePreview));
+updatePreview();
+
+/* ============ GENERATE LAYOUTS ============ */
+let currentLayouts = [];
+let compareSelection = [];
+
+document.getElementById('plotForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const L = parseFloat(document.getElementById('lengthInput').value);
+  const W = parseFloat(document.getElementById('widthInput').value);
+  const facing = document.getElementById('facingInput').value;
+  const floorsCount = parseInt(document.getElementById('floorsInput').value, 10);
+  if(!L || !W || L<10 || W<10) return;
+
+  const submitBtn = e.target.querySelector('button[type=submit]');
+  submitBtn.textContent = 'Generating…'; submitBtn.disabled = true;
+  compareSelection = [];
+  updateCompareBar();
+
+  currentLayouts = [];
+  try {
+    const res = await fetch(API_BASE + '/plans/generate', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ length:L, width:W, facing, floors:floorsCount })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Backend error');
+    currentLayouts = data.variations.map(v => ({ id:v.id, L, W, floors:v.floors }));
+  } catch(err){
+    console.warn('Backend unreachable, generating locally instead:', err.message);
+    for(let i=0;i<10;i++) currentLayouts.push({ id:i+1, L, W, floors: generateFloors(L,W,floorsCount, 1000+i*37) });
+  }
+  submitBtn.textContent = 'Generate 10 Layouts'; submitBtn.disabled = false;
+
+  const grid = document.getElementById('resultsGrid');
+  grid.innerHTML = '';
+  currentLayouts.forEach(layout => {
+    const totalRooms = layout.floors.reduce((s,f)=>s+f.rooms.length,0);
+    const card = document.createElement('div');
+    card.className = 'plan-card';
+    card.innerHTML = `
+      <label class="compare-check"><input type="checkbox" data-id="${layout.id}"></label>
+      <div class="thumb"><svg viewBox="0 0 220 220">${renderBlueprint(layout.floors[0].rooms, layout.L, layout.W, 220, false)}</svg></div>
+      <div class="meta">
+        <div class="num">Layout ${String(layout.id).padStart(2,'0')} / 10 ${layout.floors.length>1 ? '· G+'+(layout.floors.length-1) : ''}</div>
+        <h3>${totalRooms} rooms</h3>
+        <div class="area">${(layout.L*layout.W).toLocaleString()} sq ft/floor · ${facing} facing</div>
+      </div>`;
+    card.querySelector('.thumb').addEventListener('click', () => openModal(layout, facing));
+    card.querySelector('.meta').addEventListener('click', () => openModal(layout, facing));
+    card.querySelector('input').addEventListener('click', e => e.stopPropagation());
+    card.querySelector('input').addEventListener('change', e => toggleCompare(layout.id, e.target.checked));
+    grid.appendChild(card);
+  });
+  document.getElementById('resultsSection').hidden = false;
+  scrollTo('resultsSection');
+});
+
+/* ============ COMPARE ============ */
+function toggleCompare(id, checked){
+  if(checked){
+    if(compareSelection.length >= 2){
+      // uncheck the oldest to keep max 2 selected
+      const removedId = compareSelection.shift();
+      const removedBox = document.querySelector(`.compare-check input[data-id="${removedId}"]`);
+      if(removedBox) removedBox.checked = false;
+    }
+    compareSelection.push(id);
+  } else {
+    compareSelection = compareSelection.filter(x => x !== id);
+  }
+  updateCompareBar();
+}
+function updateCompareBar(){
+  const bar = document.getElementById('compareBar');
+  bar.hidden = compareSelection.length !== 2;
+  if(compareSelection.length === 2) document.getElementById('compareCount').textContent = `Layout ${compareSelection[0]} vs Layout ${compareSelection[1]}`;
+}
+document.getElementById('compareClearBtn').addEventListener('click', () => {
+  compareSelection = [];
+  document.querySelectorAll('.compare-check input').forEach(cb => cb.checked = false);
+  updateCompareBar();
+});
+document.getElementById('compareBtn').addEventListener('click', () => {
+  const [a, b] = compareSelection.map(id => currentLayouts.find(l => l.id === id));
+  if(!a || !b) return;
+  const grid = document.getElementById('compareGrid');
+  grid.innerHTML = [a,b].map(layout => {
+    const rooms = layout.floors[0].rooms;
+    const totalRooms = layout.floors.reduce((s,f)=>s+f.rooms.length,0);
+    const vastu = computeVastu(rooms, layout.L, layout.W);
+    const cost = Math.round(layout.L*layout.W*layout.floors.length*COST_RATES.Standard);
+    return `<div class="compare-col">
+      <h4>Layout ${String(layout.id).padStart(2,'0')}${layout.floors.length>1 ? ' · G+'+(layout.floors.length-1) : ''}</h4>
+      <svg viewBox="0 0 300 300">${renderBlueprint(rooms, layout.L, layout.W, 300, true)}</svg>
+      <div class="compare-stats">
+        <span>Total rooms: ${totalRooms}</span>
+        <span>Vastu score: ${vastu.score}%</span>
+        <span>Est. cost (Standard): ₹${cost.toLocaleString('en-IN')}</span>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('compareBackdrop').hidden = false;
+});
+document.getElementById('closeCompareModal').addEventListener('click', () => document.getElementById('compareBackdrop').hidden = true);
+document.getElementById('compareBackdrop').addEventListener('click', e => { if(e.target.id === 'compareBackdrop') document.getElementById('compareBackdrop').hidden = true; });
+
+/* ============ MODAL ============ */
+const modalBackdrop = document.getElementById('modalBackdrop');
+let activeLayout = null, activeTab = 'blueprint', activeFacing = 'North', activeFloorIndex = 0;
+
+function openModal(layout, facing){
+  activeLayout = layout; activeTab = 'blueprint'; activeFacing = facing || activeFacing; activeFloorIndex = 0;
+  document.getElementById('modalTitle').textContent = `Layout ${String(layout.id).padStart(2,'0')} — ${layout.L}×${layout.W} ft${layout.floors.length>1 ? ' · G+'+(layout.floors.length-1) : ''}`;
+  document.getElementById('saveStatus').textContent = '';
+  renderFloorTabs();
+  setTab('blueprint');
+  modalBackdrop.hidden = false;
+}
+function renderFloorTabs(){
+  const wrap = document.getElementById('floorTabs');
+  if(activeLayout.floors.length <= 1){ wrap.hidden = true; wrap.innerHTML=''; return; }
+  wrap.hidden = false;
+  wrap.innerHTML = activeLayout.floors.map((f,i) => `<button class="floor-tab-btn ${i===activeFloorIndex?'active':''}" data-i="${i}">${f.label}</button>`).join('');
+  wrap.querySelectorAll('.floor-tab-btn').forEach(btn => btn.addEventListener('click', () => { activeFloorIndex = +btn.dataset.i; renderFloorTabs(); setTab(activeTab); }));
+}
+function setTab(tab){
+  activeTab = tab;
+  document.getElementById('tabBlueprint').classList.toggle('active', tab==='blueprint');
+  document.getElementById('tab3d').classList.toggle('active', tab==='3d');
+  const floorRooms = activeLayout.floors[activeFloorIndex].rooms;
+  const svg = document.getElementById('modalSvg');
+  if(tab === 'blueprint'){
+    svg.setAttribute('viewBox','0 0 600 600');
+    svg.innerHTML = renderBlueprint(floorRooms, activeLayout.L, activeLayout.W, 600, true);
+  } else {
+    svg.setAttribute('viewBox','0 0 600 480');
+    svg.innerHTML = renderIso3D(floorRooms, activeLayout.L, activeLayout.W, 600);
+  }
+  const legend = document.getElementById('modalLegend');
+  const seen = new Set();
+  legend.innerHTML = floorRooms.filter(r => !seen.has(r.key) && seen.add(r.key)).map(r =>
+    `<div class="legend-item"><span class="swatch" style="background:${r.fill}"></span>${r.name} (${r.dev})</div>`).join('');
+  renderVastu(floorRooms, activeLayout.L, activeLayout.W);
+  renderCost(activeLayout.L * activeLayout.W * activeLayout.floors.length);
+}
+document.getElementById('tabBlueprint').addEventListener('click', () => setTab('blueprint'));
+document.getElementById('tab3d').addEventListener('click', () => setTab('3d'));
+document.getElementById('closeModal').addEventListener('click', () => modalBackdrop.hidden = true);
+modalBackdrop.addEventListener('click', e => { if(e.target === modalBackdrop) modalBackdrop.hidden = true; });
+
+document.getElementById('savePlanBtn').addEventListener('click', async () => {
+  const status = document.getElementById('saveStatus');
+  if(!currentUser){ status.textContent = 'Log in to save plans.'; openAuthModal('login'); return; }
+  status.textContent = 'Saving…';
+  try {
+    const res = await fetch(API_BASE + '/plans/save', {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+authToken },
+      body: JSON.stringify({ length:activeLayout.L, width:activeLayout.W, facing:activeFacing, rooms:activeLayout.floors[0].rooms, floors:activeLayout.floors })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Could not save.');
+    status.textContent = 'Saved to My Plans ✓';
+  } catch(err){
+    status.textContent = "Couldn't save — " + err.message;
+  }
+});
+
+/* ============ PDF EXPORT (browser print → Save as PDF) ============ */
+document.getElementById('pdfBtn').addEventListener('click', () => window.print());
+
+/* ============ WHATSAPP SHARE (text summary — wa.me can't attach images via link) ============ */
+document.getElementById('waBtn').addEventListener('click', () => {
+  const floorRooms = activeLayout.floors[activeFloorIndex].rooms;
+  const vastu = computeVastu(floorRooms, activeLayout.L, activeLayout.W);
+  const cost = Math.round(activeLayout.L*activeLayout.W*activeLayout.floors.length*COST_RATES[activeQuality]);
+  const text = `Muskaan.ai — Layout ${String(activeLayout.id).padStart(2,'0')}\n` +
+    `Plot: ${activeLayout.L}×${activeLayout.W} ft (${(activeLayout.L*activeLayout.W).toLocaleString()} sq ft)${activeLayout.floors.length>1 ? ' · G+'+(activeLayout.floors.length-1) : ''}\n` +
+    `Rooms: ${floorRooms.map(r=>r.name).join(', ')}\n` +
+    `Vastu score: ${vastu.score}%\n` +
+    `Est. cost (${activeQuality}): ₹${cost.toLocaleString('en-IN')}`;
+  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+});
+
+/* ============ STYLE SECTION (interior/exterior mood boards) ============ */
+const STYLES = [
+  { name:'Modern Minimalist', desc:'Clean lines, neutral tones, large glass openings.', colors:['#EDEAE2','#C9A66B','#3A3A38','#8A8A82'] },
+  { name:'Traditional Indian', desc:'Jaali screens, courtyards, warm terracotta and stone.', colors:['#B5533C','#C9A66B','#5B5347','#EADFC5'] },
+  { name:'Contemporary Urban', desc:'Exposed concrete, black steel frames, muted greens.', colors:['#4A4A48','#7A97A6','#1E1B16','#B7C299'] },
+  { name:'Industrial Loft', desc:'Brick textures, iron fixtures, factory-style windows.', colors:['#8F3F2E','#5B5347','#2B2925','#A69C8C'] }
+];
+const styleGrid = document.getElementById('styleGrid');
+STYLES.forEach(s => {
+  const card = document.createElement('div');
+  card.className = 'style-card';
+  card.innerHTML = `
+    <h3>${s.name}</h3>
+    <p>${s.desc}</p>
+    <div class="palette">${s.colors.map(c=>`<span style="background:${c}"></span>`).join('')}</div>
+    <button class="btn btn-ghost" type="button">Generate 10 images</button>
+    <div class="save-status" style="color:#B9C7D6;"></div>
+  `;
+  const statusEl = card.querySelector('.save-status');
+  card.querySelector('button').addEventListener('click', async () => {
+    if(!currentUser){ openAuthModal('login'); return; }
+    statusEl.textContent = 'Requesting from backend…';
+    try {
+      const res = await fetch(API_BASE + '/images/generate', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+authToken },
+        body: JSON.stringify({ styleName:s.name, room:'living room', count:10 })
+      });
+      const data = await res.json();
+      if(res.status === 501){
+        statusEl.textContent = data.detail || 'Image API key not set on the backend yet.';
+        return;
+      }
+      if(!res.ok) throw new Error(data.error || 'Image generation failed.');
+      statusEl.innerHTML = `Got ${data.images.length} image(s): ` + data.images.map((url,i)=>`<a href="${url}" target="_blank" style="color:#7FB3E8;">#${i+1}</a>`).join(' ');
+    } catch(err){
+      statusEl.textContent = "Couldn't reach backend — is it running? (" + err.message + ")";
+    }
+  });
+  styleGrid.appendChild(card);
+});
+
+function scrollTo(id){ document.getElementById(id).scrollIntoView({behavior:'smooth'}); }
+</script>
+</body>
+</html>
